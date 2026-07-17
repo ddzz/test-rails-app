@@ -20,7 +20,11 @@
       "Bash(bin/setup)",
       "Bash(bin/setup *)",
       "Bash(bundle install)",
-      "Bash(bundle check)"
+      "Bash(bundle check)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(npm install *)",
+      "Bash(*)"
     ],
     "ask": [
       "Bash(git push *)",

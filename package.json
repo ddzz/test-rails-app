@@ -1,0 +1,22 @@
+{
+  "name": "test-rails-app-frontend",
+  "private": true,
+  "scripts": {
+    "dev": "webpack serve --config frontend/webpack.config.js --mode development",
+    "build": "webpack --config frontend/webpack.config.js --mode production"
+  },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^8.0.1",
+    "@babel/preset-env": "^8.0.2",
+    "@babel/preset-react": "^8.0.1",
+    "babel-loader": "^10.1.1",
+    "html-webpack-plugin": "^5.6.7",
+    "webpack": "^5.108.4",
+    "webpack-cli": "^7.2.1",
+    "webpack-dev-server": "^6.0.0"
+  }
+}

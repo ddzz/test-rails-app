@@ -34,3 +34,7 @@
 # Ignore personal Claude Code settings.
 /.claude/settings.local.json
 
+# Ignore frontend build artifacts and npm packages.
+/node_modules
+/frontend/dist
+
