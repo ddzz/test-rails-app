@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(bin/rspec)",
+      "Bash(bin/rspec *)",
+      "Bash(bin/rubocop)",
+      "Bash(bin/rubocop *)",
+      "Bash(bin/brakeman)",
+      "Bash(bin/brakeman *)",
+      "Bash(bin/bundler-audit)",
+      "Bash(bin/bundler-audit *)",
+      "Bash(bin/rails routes)",
+      "Bash(bin/rails routes *)",
+      "Bash(bin/rails generate *)",
+      "Bash(bin/rails db:prepare)",
+      "Bash(bin/rails db:migrate)",
+      "Bash(bin/rails db:migrate:status)",
+      "Bash(bin/rails db:test:prepare)",
+      "Bash(bin/setup)",
+      "Bash(bin/setup *)",
+      "Bash(bundle install)",
+      "Bash(bundle check)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(bin/kamal *)",
+      "Bash(bin/rails db:drop *)",
+      "Bash(bin/rails db:reset *)"
+    ],
+    "deny": [
+      "Read(./config/master.key)",
+      "Read(./config/*.key)",
+      "Read(./config/credentials/**)",
+      "Read(./.env*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/rubocop-autocorrect.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

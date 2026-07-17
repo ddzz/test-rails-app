@@ -31,3 +31,6 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+# Ignore personal Claude Code settings.
+/.claude/settings.local.json
+
