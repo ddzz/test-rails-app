@@ -1,5 +1,27 @@
 #!/usr/bin/env sh
 
+# Verify PostgreSQL is accepting connections before starting the servers;
+# otherwise the API boots fine but returns 500s on every request that
+# touches the database (ActiveRecord::ConnectionNotEstablished).
+check_postgres() {
+  pg_isready_bin="$(command -v pg_isready)"
+  if [ -z "$pg_isready_bin" ] && [ -x /Applications/Postgres.app/Contents/Versions/latest/bin/pg_isready ]; then
+    pg_isready_bin=/Applications/Postgres.app/Contents/Versions/latest/bin/pg_isready
+  fi
+
+  if [ -n "$pg_isready_bin" ]; then
+    "$pg_isready_bin" --quiet && return 0
+  elif [ -S /tmp/.s.PGSQL.5432 ]; then
+    return 0
+  fi
+
+  echo "Error: PostgreSQL is not running." >&2
+  echo "Start it (e.g. 'open -a Postgres' for Postgres.app) and re-run bin/dev." >&2
+  return 1
+}
+
+check_postgres || exit 1
+
 if ! gem list foreman -i --silent; then
   echo "Installing foreman..."
   gem install foreman

@@ -1,56 +1,94 @@
 import { useEffect, useState } from "react";
+import { fetchTasks, updateTask, deleteTask } from "../api";
 import Task from "./Task";
+import TaskForm from "./TaskForm";
 
 function TaskList() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [actionError, setActionError] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    async function fetchTasks() {
+    async function loadTasks() {
       try {
-        const response = await fetch(`${process.env.API_URL}/api/v1/tasks`, {
-          signal: controller.signal
-        });
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
-        }
-        setTasks(await response.json());
+        setTasks(await fetchTasks(controller.signal));
         setLoading(false);
       } catch (err) {
         if (err.name === "AbortError") {
           return;
         }
-        setError(err.message);
+        setLoadError(err.message);
         setLoading(false);
       }
     }
 
-    fetchTasks();
+    loadTasks();
 
     return () => controller.abort();
   }, []);
 
-  if (loading) {
-    return <p>Loading tasks…</p>;
+  function handleCreated(task) {
+    setTasks((current) => [...current, task]);
   }
 
-  if (error) {
-    return <p className="error">Failed to load tasks: {error}</p>;
+  async function handleToggleCompleted(task) {
+    try {
+      const updated = await updateTask(task.id, { completed: !task.completed });
+      setTasks((current) =>
+        current.map((existing) => (existing.id === updated.id ? updated : existing))
+      );
+      setActionError(null);
+    } catch (err) {
+      setActionError(err.message);
+    }
   }
 
-  if (tasks.length === 0) {
-    return <p>No tasks yet</p>;
+  async function handleDelete(task) {
+    try {
+      await deleteTask(task.id);
+      setTasks((current) => current.filter((existing) => existing.id !== task.id));
+      setActionError(null);
+    } catch (err) {
+      setActionError(err.message);
+    }
+  }
+
+  function renderTasks() {
+    if (loading) {
+      return <p>Loading tasks…</p>;
+    }
+
+    if (loadError) {
+      return <p className="error">Failed to load tasks: {loadError}</p>;
+    }
+
+    if (tasks.length === 0) {
+      return <p>No tasks yet</p>;
+    }
+
+    return (
+      <ul className="task-list">
+        {tasks.map((task) => (
+          <Task
+            key={task.id}
+            task={task}
+            onToggleCompleted={handleToggleCompleted}
+            onDelete={handleDelete}
+          />
+        ))}
+      </ul>
+    );
   }
 
   return (
-    <ul>
-      {tasks.map((task) => (
-        <Task key={task.id} task={task} />
-      ))}
-    </ul>
+    <section>
+      <TaskForm onCreated={handleCreated} />
+      {actionError && <p className="error">{actionError}</p>}
+      {renderTasks()}
+    </section>
   );
 }
 
