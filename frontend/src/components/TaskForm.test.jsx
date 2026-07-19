@@ -52,4 +52,29 @@ describe("TaskForm", () => {
     expect(await screen.findByText("Request failed with status 500")).toBeInTheDocument();
     expect(screen.getByLabelText("Title")).toHaveValue("Survives");
   });
+
+  it("shows the submitting state while the request is in flight", async () => {
+    const user = userEvent.setup();
+    let resolveCreate;
+    createTask.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCreate = resolve;
+        })
+    );
+
+    render(<TaskForm onCreated={jest.fn()} />);
+
+    await user.type(screen.getByLabelText("Title"), "New task");
+    await user.type(screen.getByLabelText("Description"), "Details");
+    await user.click(screen.getByRole("button", { name: "Add task" }));
+
+    expect(screen.getByRole("button", { name: "Adding…" })).toBeDisabled();
+
+    resolveCreate({ id: 1, title: "New task", description: "Details", completed: false });
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Add task" })).toBeEnabled()
+    );
+  });
 });
