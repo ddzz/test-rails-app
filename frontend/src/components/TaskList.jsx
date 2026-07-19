@@ -5,6 +5,7 @@ import TaskForm from "./TaskForm";
 
 function TaskList() {
   const [tasks, setTasks] = useState([]);
+  const [pendingTaskIds, setPendingTaskIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [actionError, setActionError] = useState(null);
@@ -34,7 +35,21 @@ function TaskList() {
     setTasks((current) => [...current, task]);
   }
 
+  function markPending(id) {
+    setPendingTaskIds((current) => [...current, id]);
+  }
+
+  function clearPending(id) {
+    setPendingTaskIds((current) => current.filter((existing) => existing !== id));
+  }
+
+  function removeTask(id) {
+    setTasks((current) => current.filter((existing) => existing.id !== id));
+  }
+
   async function handleToggleCompleted(task) {
+    markPending(task.id);
+
     try {
       const updated = await updateTask(task.id, { completed: !task.completed });
       setTasks((current) =>
@@ -42,17 +57,33 @@ function TaskList() {
       );
       setActionError(null);
     } catch (err) {
-      setActionError(err.message);
+      if (err.status === 404) {
+        removeTask(task.id);
+        setActionError("That task no longer exists on the server, so it was removed from the list.");
+      } else {
+        setActionError(err.message);
+      }
+    } finally {
+      clearPending(task.id);
     }
   }
 
   async function handleDelete(task) {
+    markPending(task.id);
+
     try {
       await deleteTask(task.id);
-      setTasks((current) => current.filter((existing) => existing.id !== task.id));
+      removeTask(task.id);
       setActionError(null);
     } catch (err) {
-      setActionError(err.message);
+      if (err.status === 404) {
+        removeTask(task.id);
+        setActionError(null);
+      } else {
+        setActionError(err.message);
+      }
+    } finally {
+      clearPending(task.id);
     }
   }
 
@@ -75,6 +106,7 @@ function TaskList() {
           <Task
             key={task.id}
             task={task}
+            pending={pendingTaskIds.includes(task.id)}
             onToggleCompleted={handleToggleCompleted}
             onDelete={handleDelete}
           />

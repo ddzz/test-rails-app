@@ -25,17 +25,10 @@ module.exports = {
   module: {
     rules: [
       {
+        // Presets live in the root babel.config.js, shared with babel-jest.
         test: /\.jsx?$/,
         exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: [
-              "@babel/preset-env",
-              ["@babel/preset-react", { runtime: "automatic" }]
-            ]
-          }
-        }
+        use: "babel-loader"
       }
     ]
   },

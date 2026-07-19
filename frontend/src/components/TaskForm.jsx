@@ -28,8 +28,8 @@ function TaskForm({ onCreated }) {
     <form className="task-form" onSubmit={handleSubmit}>
       {errors.length > 0 && (
         <ul className="errors">
-          {errors.map((message) => (
-            <li key={message}>{message}</li>
+          {errors.map((message, index) => (
+            <li key={index}>{message}</li>
           ))}
         </ul>
       )}

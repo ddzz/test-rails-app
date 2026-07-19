@@ -12,7 +12,7 @@ See `Gemfile` and `package.json`
 * Configuration
 
 * Database creation
-PostgreSQL (to be added)
+PostgreSQL — with a local server running, `bin/rails db:prepare` creates the app databases and runs migrations
 
 * Database initialization
 

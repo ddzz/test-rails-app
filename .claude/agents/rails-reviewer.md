@@ -16,4 +16,6 @@ Check against the repo's conventions:
 - Slow work runs through Solid Queue jobs, not inline in requests.
 - API-only constraints hold: no reliance on sessions, cookies, or view-layer helpers.
 
+Changes under `frontend/` are reviewed by the `frontend-reviewer` agent — skip them except where they touch the API contract (paths, payload shapes, status codes, error envelope).
+
 Also flag plain correctness bugs (nil handling, N+1 queries, missing validations, race conditions in jobs). Order findings most-severe first; if everything is clean, say so briefly.

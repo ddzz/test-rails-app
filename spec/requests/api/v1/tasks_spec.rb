@@ -24,6 +24,15 @@ RSpec.describe "Api::V1::Tasks", type: :request do
         expect(task.keys).to match_array(task_keys)
       end
     end
+
+    it "returns tasks ordered by id" do
+      older = create(:task)
+      newer = create(:task)
+
+      get "/api/v1/tasks"
+
+      expect(response.parsed_body.map { |task| task["id"] }).to eq([ older.id, newer.id ])
+    end
   end
 
   describe "GET /api/v1/tasks/:id" do
@@ -88,6 +97,13 @@ RSpec.describe "Api::V1::Tasks", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body).to eq("errors" => [ "Description can't be blank" ])
     end
+
+    it "returns 400 with an errors array when the task param is missing" do
+      post "/api/v1/tasks", params: {}
+
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body).to match("errors" => [ a_string_including("task") ])
+    end
   end
 
   describe "PATCH /api/v1/tasks/:id" do
@@ -123,21 +139,23 @@ RSpec.describe "Api::V1::Tasks", type: :request do
     it "returns 422 with an errors array when title is blank" do
       task = create(:task)
 
-      patch "/api/v1/tasks/#{task.id}", params: { task: { title: "" } }
+      expect {
+        patch "/api/v1/tasks/#{task.id}", params: { task: { title: "" } }
+      }.not_to change { task.reload.title }
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body).to eq("errors" => [ "Title can't be blank" ])
-      expect(task.reload.title).to eq("Buy groceries")
     end
 
     it "returns 422 with an errors array when description is blank" do
       task = create(:task)
 
-      patch "/api/v1/tasks/#{task.id}", params: { task: { description: "" } }
+      expect {
+        patch "/api/v1/tasks/#{task.id}", params: { task: { description: "" } }
+      }.not_to change { task.reload.description }
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body).to eq("errors" => [ "Description can't be blank" ])
-      expect(task.reload.description).to eq("Milk, eggs, and bread")
     end
 
     it "returns 404 with an errors array for an unknown id" do

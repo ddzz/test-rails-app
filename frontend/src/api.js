@@ -13,7 +13,7 @@ async function request(path, options = {}) {
   const { body, ...fetchOptions } = options;
 
   if (body !== undefined) {
-    fetchOptions.headers = { "Content-Type": "application/json" };
+    fetchOptions.headers = { "Content-Type": "application/json", ...fetchOptions.headers };
     fetchOptions.body = JSON.stringify(body);
   }
 

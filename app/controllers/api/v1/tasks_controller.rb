@@ -5,8 +5,12 @@ class Api::V1::TasksController < ApplicationController
     render json: { errors: [ "Task not found" ] }, status: :not_found
   end
 
+  rescue_from ActionController::ParameterMissing do |exception|
+    render json: { errors: [ exception.message ] }, status: :bad_request
+  end
+
   def index
-    render json: Task.all
+    render json: Task.order(:id)
   end
 
   def show

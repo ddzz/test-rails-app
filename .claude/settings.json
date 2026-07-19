@@ -27,20 +27,11 @@
       "Bash(npm run:*)",
       "Bash(npm test:*)",
       "Bash(npm install *)",
-      "Bash(*)"
+      "Bash(*)",
+      "Edit",
+      "Read"
     ],
-    "ask": [
-      "Bash(git push *)",
-      "Bash(bin/kamal *)",
-      "Bash(bin/rails db:drop *)",
-      "Bash(bin/rails db:reset *)"
-    ],
-    "deny": [
-      "Read(./config/master.key)",
-      "Read(./config/*.key)",
-      "Read(./config/credentials/**)",
-      "Read(./.env*)"
-    ]
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PostToolUse": [

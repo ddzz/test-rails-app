@@ -1,4 +1,4 @@
-function Task({ task, onToggleCompleted, onDelete }) {
+function Task({ task, pending, onToggleCompleted, onDelete }) {
   const className = task.completed ? "task task-completed" : "task";
 
   return (
@@ -8,11 +8,12 @@ function Task({ task, onToggleCompleted, onDelete }) {
           <input
             type="checkbox"
             checked={task.completed}
+            disabled={pending}
             onChange={() => onToggleCompleted(task)}
           />
           {task.title}
         </label>
-        <button type="button" onClick={() => onDelete(task)}>
+        <button type="button" disabled={pending} onClick={() => onDelete(task)}>
           Delete
         </button>
       </div>

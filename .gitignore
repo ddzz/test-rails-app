@@ -37,4 +37,5 @@
 # Ignore frontend build artifacts and npm packages.
 /node_modules
 /frontend/dist
+/coverage
 
