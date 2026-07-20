@@ -20,7 +20,7 @@ Run everything through the binstubs in `bin/` (they handle Bundler):
 - `bin/rubocop` — lint (rubocop-rails-omakase; config in `.rubocop.yml`)
 - `bin/brakeman` / `bin/bundler-audit` — security static analysis / gem CVE audit
 
-CI (`.github/workflows/ci.yml`) runs Brakeman, bundler-audit, and RuboCop on PRs and pushes to `main`. **It runs neither RSpec nor Jest** — add test jobs if the suites should gate CI.
+CI (`.github/workflows/ci.yml`) runs Brakeman, bundler-audit, RuboCop, and RSpec (`test` job: `postgres:17` service; `DATABASE_URL` supplies host/credentials only, so the database name still comes from `config/database.yml`, and job-level `RAILS_ENV=test` is required for that merge) on PRs and pushes to `main`. **Jest still doesn't run in CI** — add a Node job if the frontend suite should gate CI. `bin/ci` mirrors the Ruby-side steps locally, including `bin/rspec`.
 
 ### Environment quirks
 
@@ -104,5 +104,5 @@ Commits `af46e5f` (bare Rails skeleton) → `e87218f` (current HEAD):
 
 - Three verified-minor test gaps (found by frontend-reviewer + adversarial verification): `handleDelete`'s generic-failure branch is untested (TaskList.jsx ~line 83); success-path banner clearing (`setActionError(null)`) is untested — mutation-proven; `jest.config.js` sets no `clearMocks`/`resetMocks`, so mock state leaks between tests within a file (currently masked by per-test setup).
 - ESLint is planned but not yet added (`npm run lint` doesn't exist; the frontend-reviewer auto-detects it when it lands).
-- CI runs neither test suite.
+- CI runs RSpec but not Jest — the frontend suite still doesn't gate CI.
 - Permission config restore after the demo (see above).
