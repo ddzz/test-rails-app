@@ -2,7 +2,8 @@
 
 Applies to `frontend/**` (plus `package.json` and the root `.env`).
 
-- Plain JavaScript/JSX, no TypeScript. React + Webpack. Tests run on Jest + React Testing Library; ESLint is a planned addition.
+- Plain JavaScript/JSX, no TypeScript. React + Webpack, with react-router-dom for client-side routing. Tests run on Jest + React Testing Library; ESLint is a planned addition.
+- Routing: `BrowserRouter` appears only in `index.jsx` — components and tests stay router-agnostic (tests wrap `App` in `MemoryRouter` with `initialEntries`). Routes and the nav live in `App.jsx`; a new page means a new `Route` plus a `NavLink`. Never remove `output.publicPath: "/"` or `devServer.historyApiFallback: true` from the webpack config — deep-linking any client-side route needs both.
 - All HTTP goes through `frontend/src/api.js`; components never call `fetch` directly. Failures carry the API's `{ "errors": [...] }` envelope via `ApiError`; DELETE's 204 resolves to `null`; request bodies are shaped `{ task: { ... } }` to match the controller's strong params.
 - `API_URL` comes from the root `.env` via `process.loadEnvFile` + webpack `DefinePlugin`. Never hardcode server URLs in components. The dev server port stays **5173** — it is coupled to the allowed origins in `config/initializers/cors.rb`.
 - Component shape: small named function components with default exports. Container/presentational split — state and handlers live in `TaskList`; `Task` stays stateless (data down via props, callbacks up). Forms use controlled inputs.

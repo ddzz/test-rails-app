@@ -17,6 +17,10 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "main.js",
+    // Absolute asset URLs: at nested routes like /tasks, a relative main.js
+    // would resolve to /tasks/main.js and the history fallback would serve
+    // index.html in its place.
+    publicPath: "/",
     clean: true
   },
   resolve: {
@@ -41,6 +45,8 @@ module.exports = {
   devServer: {
     // Must stay on 5173: the Rails CORS config only allows this origin.
     port: 5173,
-    hot: true
+    hot: true,
+    // Client-side routes (/tasks) must serve index.html on refresh/deep-link.
+    historyApiFallback: true
   }
 };

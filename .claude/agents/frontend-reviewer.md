@@ -13,6 +13,7 @@ Check against the repo's conventions (`.claude/rules/frontend-conventions.md`):
 - `API_URL` flows from the root `.env` through `process.loadEnvFile` + `DefinePlugin` — no hardcoded server URLs in components. Webpack changes must preserve the env plumbing, `context: __dirname`, and dev-server port 5173 (coupled to the CORS origins in `config/initializers/cors.rb`).
 - Component shape: small named function components, default exports; state and handlers in `TaskList`, presentational components stateless (props down, callbacks up); controlled inputs; server-side validation is the source of truth; local state updated from API responses — never refetch-everything after a mutation.
 - Fetching effects use `AbortController`, ignore `AbortError`, clean up on unmount; list items keyed by `id`; styles stay in `frontend/src/index.html`'s `<style>` block.
+- Routing: `BrowserRouter` only in `index.jsx` (tests use `MemoryRouter`); routes + nav live in `App.jsx`. The webpack config keeps `output.publicPath: "/"` and `devServer.historyApiFallback: true` — flag any change that drops either (deep-linking client-side routes breaks).
 
 Verify (all commands from the repo root):
 

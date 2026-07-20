@@ -15,7 +15,7 @@ Run everything through the binstubs in `bin/` (they handle Bundler):
 - `bin/rails console` / `bin/rails db:migrate` / `bin/rails db:prepare` — usual Rails tasks
 - `bin/rspec` — run the backend test suite (19 examples)
   - Single file: `bin/rspec spec/requests/api/v1/tasks_spec.rb`; single example: append `:42`
-- `npm test` — run the frontend test suite (Jest + RTL, 19 tests; `npm run test:watch` for watch mode)
+- `npm test` — run the frontend test suite (Jest + RTL, 24 tests; `npm run test:watch` for watch mode)
 - `npm run build` / `npm run dev` — webpack production build / dev server alone (both proxy `--config frontend/webpack.config.js`)
 - `bin/rubocop` — lint (rubocop-rails-omakase; config in `.rubocop.yml`)
 - `bin/brakeman` / `bin/bundler-audit` — security static analysis / gem CVE audit
@@ -68,6 +68,7 @@ Task JSON shape: exactly `{ id, title, description, completed, created_at, updat
 
 ### Frontend implementation (`frontend/src/`, npm config at repo root)
 
+- **Routing** (react-router-dom 7): `BrowserRouter` lives only in `index.jsx` so tests can wrap `App` in `MemoryRouter`. `App.jsx` holds the nav (`NavLink`, which sets the `active` class styled in `index.html`) and the `Routes`: `/` → `Home` (placeholder for the upcoming home-page feature), `/tasks` → `TasksPage` (heading + `TaskList`), `*` → `NotFound`. Deep-linking `/tasks` needs **both** webpack settings: `output.publicPath: "/"` (else the relative `main.js` request at a nested route gets index.html served back) and `devServer.historyApiFallback: true` — don't remove either.
 - **`api.js`** is the single HTTP boundary — components never call `fetch`. A shared `request()` helper adds JSON headers when a body is present (merging, not clobbering, caller headers), returns `null` for 204, parses JSON otherwise, and throws `ApiError` (fields: `status`, `errors[]` from the envelope, message = errors joined). Exports `fetchTasks(signal)`, `createTask`, `updateTask`, `deleteTask`; bodies are `{ task: {...} }` to match strong params.
 - **`components/TaskList.jsx`** — the container; owns all state: `tasks`, `pendingTaskIds`, `loading`, `loadError`, `actionError`. Mount fetch uses `AbortController` (cleanup on unmount, `AbortError` ignored). Handlers update local state **from each response — never refetch the list**: POST body appended, PATCH body replaces the matching task, 204 filters the id out. Error semantics: a task's id is in `pendingTaskIds` while its PATCH/DELETE is in flight (guards the double-toggle race by disabling that row's controls); toggle-404 removes the phantom row and sets the banner "That task no longer exists on the server, so it was removed from the list."; delete-404 removes it silently (delete is idempotent); other failures set `actionError` (a banner — the list never unmounts for action errors, unlike `loadError`).
 - **`components/Task.jsx`** — presentational only: checkbox (toggles via callback), Delete button, both disabled when `pending`; strikethrough style for completed.
@@ -75,12 +76,12 @@ Task JSON shape: exactly `{ id, title, description, completed, created_at, updat
 - **Env plumbing**: `API_URL` comes from the repo-root `.env` (gitignored; content `API_URL=http://localhost:3000`) read by `frontend/webpack.config.js` via Node's `process.loadEnvFile()` (no dotenv dependency) and inlined with `DefinePlugin`; the config falls back to the same default when `.env` is absent. Dev server port **5173 is coupled to the CORS origins** — don't change one without the other. `context: __dirname` keeps webpack paths stable since npm scripts run from the repo root.
 - **Styles** live in the `<style>` block of `frontend/src/index.html`; no CSS tooling.
 
-### Frontend tests (Jest + RTL, 19 tests / 3 suites)
+### Frontend tests (Jest + RTL, 24 tests / 4 suites)
 
-- Colocated `frontend/src/**/*.test.jsx`. Config: `jest.config.js` (jsdom env; `setupFiles: frontend/jest.env.js` sets `process.env.API_URL` **before modules load** — required because `api.js` reads it at import time and tests have no DefinePlugin; `setupFilesAfterEnv: frontend/jest.setup.js` loads jest-dom).
+- Colocated `frontend/src/**/*.test.jsx`. Config: `jest.config.js` (jsdom env; `setupFiles: frontend/jest.env.js` runs **before modules load** — it sets `process.env.API_URL` (read by `api.js` at import time; tests have no DefinePlugin) and polyfills `TextEncoder`/`TextDecoder`, which react-router requires at import time but Jest's jsdom env doesn't provide; `setupFilesAfterEnv: frontend/jest.setup.js` loads jest-dom).
 - **Babel presets live in the root `babel.config.js`, shared by webpack and babel-jest — never inline them back into the webpack config.**
 - Conventions: mock at the `api.js` boundary (`jest.mock("../api")`), never `fetch` (jsdom has none anyway); query by role/label text; `user-event` for interactions; deferred-promise mocks (`mockImplementation` capturing `resolve`) to assert in-flight states.
-- Coverage: Task rendering/callbacks/pending-disable; TaskForm submit/success-clear/422-errors/values-survive-failure/submitting-state; TaskList load states + toggle success/pending/404/generic-failure + delete success/404 + create-appends (driven through the real form).
+- Coverage: Task rendering/callbacks/pending-disable; TaskForm submit/success-clear/422-errors/values-survive-failure/submitting-state; TaskList load states + toggle success/pending/404/generic-failure + delete success/404 + create-appends (driven through the real form); App routing (home at `/`, tasks at `/tasks`, nav navigation both directions, unknown-path 404 page — `MemoryRouter` with `initialEntries`).
 
 ## Work history (what was done, in order)
 
@@ -102,7 +103,7 @@ Commits `af46e5f` (bare Rails skeleton) → `e87218f` (current HEAD):
 
 ## Known follow-ups
 
-- Three verified-minor test gaps (found by frontend-reviewer + adversarial verification): `handleDelete`'s generic-failure branch is untested (TaskList.jsx ~line 83); success-path banner clearing (`setActionError(null)`) is untested — mutation-proven; `jest.config.js` sets no `clearMocks`/`resetMocks`, so mock state leaks between tests within a file (currently masked by per-test setup).
+- Two verified-minor test gaps (found by frontend-reviewer + adversarial verification): `handleDelete`'s generic-failure branch is untested (TaskList.jsx ~line 83); success-path banner clearing (`setActionError(null)`) is untested — mutation-proven. (A third — no `clearMocks` in `jest.config.js` — was fixed when the routing suite added the first negative call-count assertion.)
 - ESLint is planned but not yet added (`npm run lint` doesn't exist; the frontend-reviewer auto-detects it when it lands).
 - CI runs RSpec but not Jest — the frontend suite still doesn't gate CI.
 - Permission config restore after the demo (see above).
